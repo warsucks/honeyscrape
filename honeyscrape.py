@@ -17,21 +17,17 @@ csv_columns = [
 def add_search_results_to_data(row):
     # Mutates row, adding top results for each social media platform for the women
 
-    # Mark at least one of the people in the couple as a woman
-    # If neither name is identifiable as a woman's name
-    # Guess the owner of the registry
-    predicted_women_roles = set()
-    if row['owner_has_woman_name']:
-        predicted_women_roles.add('owner')
-    if row['partner_has_woman_name']:
-        predicted_women_roles_.add('partner')
-    else:
-        predicted_women_roles.add('owner')
-
-    for role in predicted_women_roles:
+    # Just always search for both people in the couple
+    for role in {'owner', 'partner'}:
         for p in platforms:
-            row[f"{role}_{p}"] = search_name_location_platform(
+            location_results = search_name_location_platform(
                 row[role], row['location'], p)
+
+            # try 'bay area' for location too
+            bay_area_results = search_name_location_platform(
+                row[role], 'bay area', p)
+                
+            row[f"{role}_{p}"] = location_results + bay_area_results
 
     return row
 
@@ -39,7 +35,7 @@ def add_search_results_to_data(row):
 def search_name_location_platform(name, location, platform):
     # Go slow to not get caught scraping, wait 2-5 seconds between google searches
     time.sleep(random.uniform(2, 5))
-    return fetch_and_parse_results(f"{name} {location} {platform}", 10)
+    return fetch_and_parse_results(name, location, platform, 10)
 
 
 if __name__ == "__main__":
@@ -49,4 +45,5 @@ if __name__ == "__main__":
         for d in get_data_for_all_names():
             result_dict = add_search_results_to_data(d)
             w.writerow(result_dict)
+            print(f"wrote row {result_dict}\n\n\n")
         f.close()

@@ -1,4 +1,5 @@
 import requests
+from unidecode import unidecode
 from bs4 import BeautifulSoup
 
 # Adapted from http://edmundmartin.com/scraping-google-with-python/
@@ -9,10 +10,8 @@ USER_AGENT = {
 }
 
 
-def fetch_results(search_term, number_results, language_code):
-    assert isinstance(search_term, str), 'Search term must be a string'
-    assert isinstance(number_results,
-                      int), 'Number of results must be an integer'
+def fetch_results(name, location, platform, number_results, language_code):
+    search_term = f'"{name}" "{location}" "{platform}"'
     escaped_search_term = search_term.replace(' ', '+')
 
     google_url = 'https://www.google.com/search?q={}&num={}&hl={}'.format(
@@ -23,7 +22,7 @@ def fetch_results(search_term, number_results, language_code):
     return response.text
 
 
-def parse_results(html):
+def parse_results(name, location, platform, html):
     soup = BeautifulSoup(html, 'lxml')
     found_results = []
     rank = 1
@@ -31,26 +30,45 @@ def parse_results(html):
     for result in result_block:
         link = result.find('a', href=True)
         title = result.find('h3')
+
         description = result.find('span', attrs={'class': 'st'})
         if link and title:
             link = link['href']
             title = title.get_text()
             if description:
                 description = description.get_text()
+            else:
+                description = ""
+
+            # also check if title includes name and platform!
+            simplified_title = unidecode(title.lower())
+            name_parts = unidecode(name.lower()).split(" ")
+            first_name = name_parts[0]
+            last_name = name_parts[-1]
+            if not ((first_name in simplified_title and last_name in simplified_title and platform.lower() in simplified_title) or (first_name in description and last_name in description)):
+                print(f"**1. rejected! {name}, {platform}, {title}, {link}\n")
+                break
+
+            # and that the link isn't just another google search link
+            if link.startswith('/search'):
+                print(f"**2. rejected! {name}, {platform}, {title}, {link}\n")
+                break
+
+            if not f"{platform}.com" in link:
+                print(f"**3. rejected! {name}, {platform}, {title}, {link}\n")
+                break
+
+            print(f"RESULT WAS APPROVED! {name}, {platform}, {title}, {link}\n")
+
             if link != '#':
                 found_results.append({
                     'title': title,
                     'link': link,
                     'description': description
                 })
-                rank += 1
     return found_results
 
 
-def fetch_and_parse_results(search_terms, number_results):
-    html = fetch_results(search_terms, number_results, 'en')
-    return parse_results(html)
-
-
-if __name__ == '__main__':
-    fetch_and_parse_results("Nicholas Passanisi linkedin", 10)
+def fetch_and_parse_results(name, location, platform, number_results):
+    html = fetch_results(name, location, platform, number_results, 'en')
+    return parse_results(name, location, platform, html)
