@@ -202,6 +202,8 @@ spanish_common_woman_names = {
     'Aitana',
     'Luana',
     'Isidora',
+    'Natividad',
+    'Isobel',
 }
 
 woman_names = general_common_woman_names.union(spanish_common_woman_names)
