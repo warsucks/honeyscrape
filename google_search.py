@@ -45,20 +45,18 @@ def parse_results(name, location, platform, html):
             name_parts = unidecode(name.lower()).split(" ")
             first_name = name_parts[0]
             last_name = name_parts[-1]
-            if not ((first_name in simplified_title and last_name in simplified_title and platform.lower() in simplified_title) or (first_name in description and last_name in description)):
-                print(f"**1. rejected! {name}, {platform}, {title}, {link}\n")
+            if not ((first_name in simplified_title
+                     and last_name in simplified_title
+                     and platform.lower() in simplified_title) or
+                    (first_name in description and last_name in description)):
                 break
 
             # and that the link isn't just another google search link
             if link.startswith('/search'):
-                print(f"**2. rejected! {name}, {platform}, {title}, {link}\n")
                 break
 
             if not f"{platform}.com" in link:
-                print(f"**3. rejected! {name}, {platform}, {title}, {link}\n")
                 break
-
-            print(f"RESULT WAS APPROVED! {name}, {platform}, {title}, {link}\n")
 
             if link != '#':
                 found_results.append({

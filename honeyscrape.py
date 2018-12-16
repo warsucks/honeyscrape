@@ -26,7 +26,7 @@ def add_search_results_to_data(row):
             # try 'bay area' for location too
             bay_area_results = search_name_location_platform(
                 row[role], 'bay area', p)
-                
+
             row[f"{role}_{p}"] = location_results + bay_area_results
 
     return row
@@ -45,5 +45,4 @@ if __name__ == "__main__":
         for d in get_data_for_all_names():
             result_dict = add_search_results_to_data(d)
             w.writerow(result_dict)
-            print(f"wrote row {result_dict}\n\n\n")
         f.close()
