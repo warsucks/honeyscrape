@@ -2,7 +2,8 @@ import csv
 import time
 import random
 
-from amazon_registry import get_data_for_all_names
+from names import woman_names
+from amazon_registry import get_data
 from google_search import fetch_and_parse_results
 
 platforms = {'linkedin', 'facebook', 'instagram'}
@@ -33,16 +34,21 @@ def add_search_results_to_data(row):
 
 
 def search_name_location_platform(name, location, platform):
-    # Go slow to not get caught scraping, wait 2-5 seconds between google searches
-    time.sleep(random.uniform(2, 5))
+    # Go slow to not get caught scraping, wait 5-10 seconds between google searches
+    time.sleep(random.uniform(5, 10))
     return fetch_and_parse_results(name, location, platform, 10)
 
 
 if __name__ == "__main__":
-    with open('honeyscrape_amazon_results.csv', 'w') as f:
-        w = csv.DictWriter(f, fieldnames=csv_columns)
-        w.writeheader()
-        for d in get_data_for_all_names():
-            result_dict = add_search_results_to_data(d)
-            w.writerow(result_dict)
-        f.close()
+    woman_names_list= list(woman_names)
+    woman_names_list.sort()
+    for name in woman_names_list:
+        print(f"DOING FOR NAME {name}")
+        with open(f'honeyscrape_amazon_results_{name}.csv', 'w') as f:
+            w = csv.DictWriter(f, fieldnames=csv_columns)
+            w.writeheader()
+            for d in get_data(name, "CA"):
+                result_dict = add_search_results_to_data(d)
+                w.writerow(result_dict)
+                print(f"wrote results {result_dict}\n\n\n")
+            f.close()

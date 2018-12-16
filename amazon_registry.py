@@ -40,8 +40,8 @@ def get_data(name, state):
     num_records = int(soup.find(id='recordCount').get_text().strip())
     records = (soup.find(id=f'wr_search_result_record_{n}')
                for n in range(num_records))
-    return (parse_record(r) for r in records
-            if is_in_city_list(r, bay_area_city_names))
+    return [parse_record(r) for r in records
+            if is_in_city_list(r, bay_area_city_names)]
 
 
 def parse_record(record_soup):
@@ -79,16 +79,16 @@ def is_in_city_list(record_soup, city_list):
     }).get_text().strip()
     # match if city name from known list is contained in the name
     # sometimes users enter the location name sorta wrong (this won't work for all of their wrong entries)
-    for city in bay_area_city_names:
+    for city in city_list:
         if city.lower() in event_location.lower():
             return True
     return False
 
 
-def get_data_for_all_names():
-    for name in simplified_woman_names:
-        for d in get_data(name, "CA"):
-            yield d
+# def get_data_for_all_names():
+#     for name in simplified_woman_names:
+#         for d in get_data(name, "CA"):
+#             yield d
 
 
 if __name__ == "__main__":
